@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小辞的团子测试看板🐱</title>
+  <style>
+    /* 全局样式重置 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Microsoft YaHei UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+    }
+
+    /* 可爱渐变背景 */
+    body { 
+      background: linear-gradient(120deg, #ffe6f2 0%, #e6f7ff 100%);
+      min-height: 100vh;
+      padding: 20px 10px;
+    }
+
+    /* 看板容器 */
+    .todo-board { 
+      max-width: 800px; 
+      margin: 0 auto; 
+      background: rgba(255,255,255,0.95); 
+      border-radius: 25px; 
+      padding: 25px; 
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
+
+    /* 标题样式 */
+    h2 { 
+      color: #ff88aa; 
+      text-align: center;
+      font-size: 26px;
+      margin-bottom: 20px;
+      font-weight: normal;
+      text-shadow: 0 2px 4px rgba(255,136,170,0.2);
+    }
+
+    /* 标签筛选栏 */
+    .tag-filter { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 8px; 
+      margin-bottom: 25px; 
+      padding-bottom: 15px; 
+      border-bottom: 2px dashed #ffccd5;
+    }
+    .tag-btn { 
+      padding: 8px 14px; 
+      border: none; 
+      border-radius: 20px; 
+      background: #e6f7ff; 
+      color: #666; 
+      font-size: 14px; 
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tag-btn:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(168,209,255,0.3);
+    }
+    .tag-btn.active { 
+      background: #ffccd5; 
+      color: white;
+    }
+
+    /* 输入区域 */
+    .input-area { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 12px; 
+      margin-bottom: 25px;
+    }
+    .input-area input { 
+      padding: 14px 18px; 
+      border: 2px solid #ffccd5; 
+      border-radius: 18px; 
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+    .input-area input:focus {
+      outline: none;
+      border-color: #a8d1ff;
+    }
+    #todoInput::placeholder { color: #ffb3cc; }
+    #tagInput::placeholder { color: #a8d1ff; }
+
+    /* 按钮样式 */
+    .btn { 
+      padding: 14px 20px; 
+      border: none; 
+      border-radius: 18px; 
+      background: #ffccd5; 
+      color: white; 
+      font-size: 16px; 
+      cursor: pointer; 
+      transition: all 0.2s ease; 
+    }
+    .btn:hover { 
+      transform: scale(1.03); 
+      box-shadow: 0 6px 12px rgba(255,204,213,0.4);
+    }
+    .btn:active { transform: scale(0.98); }
+
+    /* 测试项列表 */
+    #todoList { margin-bottom: 25px; }
+
+    /* 测试项条目 */
+    .todo-item { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 10px; 
+      padding: 18px; 
+      margin: 12px 0; 
+      border-radius: 18px; 
+      transition: all 0.3s ease;
+    }
+    .todo-item:hover {
+      transform: translateX(5px);
+    }
+    .todo-item.done { 
+      opacity: 0.9; 
+    }
+
+    /* 测试项头部 */
+    .todo-header { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px;
+    }
+    .tuanzi-avatar { 
+      width: 35px; 
+      height: 35px; 
+      border-radius: 50%; 
+      object-fit: cover;
+      transition: transform 0.2s;
+    }
+    .tuanzi-avatar:hover {
+      transform: rotate(10deg);
+    }
+
+    /* 标签小气泡 */
+    .tag-bubbles { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 6px; 
+      margin-left: 47px;
+    }
+    .tag-bubble { 
+      padding: 5px 12px; 
+      border-radius: 15px; 
+      color: #666; 
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tag-bubble:hover {
+      transform: scale(1.05);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    }
+
+    /* 测试记录 */
+    .test-note { 
+      font-size: 14px; 
+      color: #666; 
+      padding: 10px 14px; 
+      margin-left: 47px; 
+      background: rgba(255,255,255,0.6); 
+      border-radius: 12px; 
+      border-left: 3px solid #a8d1ff;
+    }
+
+    /* 功能按钮 */
+    .btn-group {
+      display: flex;
+      gap: 12px;
+    }
+    .cheer-btn { 
+      flex: 1;
+      background: #a8d1ff; 
+      padding: 16px; 
+      font-size: 18px; 
+    }
+    .export-btn { 
+      background: #ffd6a5; 
+      white-space: nowrap;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 600px) {
+      .btn-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="todo-board">
+    <h2>小辞的团子测试看板🐱</h2>
+    
+    <!-- 标签筛选栏 -->
+    <div class="tag-filter" id="tagFilter">
+      <button class="tag-btn active" onclick="filterByTag('all')">全部</button>
+    </div>
+    
+    <!-- 输入区 -->
+    <div class="input-area">
+      <input type="text" id="todoInput" placeholder="今天要测哪个API/prompt呀？">
+      <input type="text" id="tagInput" placeholder="加标签呀～比如prompt/模型/搬家API（多个用逗号分隔）">
+      <button class="btn" onclick="addTodo()">添加测试项</button>
+    </div>
+    
+    <!-- 测试项列表 -->
+    <div id="todoList"></div>
+    
+    <!-- 功能按钮组 -->
+    <div class="btn-group">
+      <button class="btn cheer-btn" onclick="showCheer()">团子猫打气！</button>
+      <button class="btn export-btn" onclick="exportToCSV()">导出CSV</button>
+    </div>
+  </div>
+
+  <script>
+    // 配置参数
+    const CONFIG = {
+      // 团子猫头像地址（已替换为可直接访问的萌猫图）
+      avatarNormal: "https://picsum.photos/id/40/35/35",  // 蹭爪爪的奶猫
+      avatarDone: "https://picsum.photos/id/1074/35/35", // 举对勾的乖猫（用坐姿乖猫代替）
+      // 马卡龙色标签背景
+      tagColors: ['#ffe6e6', '#e6f7ff', '#f9f7d9', '#e6ffe6', '#f5e6ff'],
+      // 打气文案
+      cheerTexts: [
+        "🐱 小辞最棒！测试一定顺顺利利～",
+        "😽 累了就歇会儿，团子给你揉爪爪！",
+        "🍡 今天也要元气满满哦！",
+        "🥳 又完成一个！小辞太厉害啦！",
+        "😻 加油加油，马上就搞定啦！"
+      ]
+    };
+
+    // 页面加载时初始化
+    window.onload = function() {
+      // 加载本地存储的数据
+      loadTodos();
+      // 每日自动打气
+      autoCheer();
+    };
+
+    // 加载本地存储的测试项
+    function loadTodos() {
+      const savedTodos = JSON.parse(localStorage.getItem('xiaociTodos') || '[]');
+      savedTodos.forEach(todo => renderTodo(todo));
+      updateTagFilter();
+    }
+
+    // 保存测试项到本地存储
+    function saveTodos() {
+      const allItems = document.querySelectorAll('.todo-item');
+      const todos = Array.from(allItems).map(item => {
+        const id = parseInt(item.dataset.id);
+        const text = item.querySelector('.todo-header span').textContent;
+        const color = item.style.background;
+        const done = item.classList.contains('done');
+        const testNoteEl = item.querySelector('.test-note');
+        const testNote = testNoteEl ? testNoteEl.textContent.replace('测试记录：', '') : '';
+        const tags = Array.from(item.querySelectorAll('.tag-bubble')).map(bubble => bubble.textContent);
+        
+        return { id, text, color, done, testNote, tags };
+      });
+      localStorage.setItem('xiaociTodos', JSON.stringify(todos));
+    }
+
+    // 添加测试项
+    function addTodo() {
+      const todoInput = document.getElementById('todoInput');
+      const tagInput = document.getElementById('tagInput');
+      const text = todoInput.value.trim();
+      const tags = tagInput.value.trim().split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag); // 过滤空标签
+
+      if (text) {
+        // 生成随机颜色
+        const randomColor = CONFIG.tagColors[Math.floor(Math.random() * CONFIG.tagColors.length)];
+        const todo = {
+          id: Date.now(),
+          text: text,
+          color: randomColor,
+          done: false,
+          testNote: '',
+          tags: tags
+        };
+        renderTodo(todo);
+        saveTodos();
+        updateTagFilter();
+        todoInput.value = '';
+        tagInput.value = '';
+      } else {
+        alert('测试项内容不能为空哦～');
+      }
+    }
+
+    // 渲染单个测试项
+    function renderTodo(todo) {
+      const list = document.getElementById('todoList');
+      const item = document.createElement('div');
+      item.className = `todo-item ${todo.done ? 'done' : ''}`;
+      item.style.background = todo.color;
+      item.dataset.id = todo.id;
+
+      // 渲染标签气泡
+      const tagBubbles = todo.tags.map(tag => {
+        // 给每个标签随机分配马卡龙色
+        const tagColor = CONFIG.tagColors[Math.floor(Math.random() * CONFIG.tagColors.length)];
+        return `<span class="tag-bubble" style="background: ${tagColor}">${tag}</span>`;
+      }).join('');
+
+      // 渲染测试记录
+      const testNoteHTML = todo.testNote ? 
+        `<div class="test-note">测试记录：${todo.testNote}</div>` : '';
+
+      item.innerHTML = `
+        <div class="todo-header">
+          <img class="tuanzi-avatar" src="${todo.done ? CONFIG.avatarDone : CONFIG.avatarNormal}" alt="团子猫">
+          <span style="font-size:16px;">${todo.text}</span>
+          <button class="btn" style="margin-left:auto;padding:8px 16px;font-size:14px;" onclick="markDone(this)">
+            ${todo.done ? '已完成' : '标记完成'}
+          </button>
+        </div>
+        ${tagBubbles ? `<div class="tag-bubbles">${tagBubbles}</div>` : ''}
+        ${testNoteHTML}
+      `;
+      list.appendChild(item);
+    }
+
+    // 标记完成/未完成
+    function markDone(btn) {
+      const item = btn.closest('.todo-item');
+      const todoId = parseInt(item.dataset.id);
+      
+      // 获取所有测试项数据
+      const savedTodos = JSON.parse(localStorage.getItem('xiaociTodos') || '[]');
+      const todoIndex = savedTodos.findIndex(t => t.id === todoId);
+      
+      if (todoIndex !== -1) {
+        if (!savedTodos[todoIndex].done) {
+          // 未完成→完成：弹出输入框
+          const note = prompt('乖宝，记录一下测试情况吧～', '');
+          if (note !== null) { // 取消时不保存
+            savedTodos[todoIndex].testNote = note.trim();
+          }
+        }
+        
+        // 切换状态
+        savedTodos[todoIndex].done = !savedTodos[todoIndex].done;
+        
+        // 更新UI
+        item.className = `todo-item ${savedTodos[todoIndex].done ? 'done' : ''}`;
+        item.querySelector('.tuanzi-avatar').src = savedTodos[todoIndex].done ? CONFIG.avatarDone : CONFIG.avatarNormal;
+        btn.textContent = savedTodos[todoIndex].done ? '已完成' : '标记完成';
+        
+        // 更新测试记录显示
+        const testNoteEl = item.querySelector('.test-note');
+        if (savedTodos[todoIndex].testNote) {
+          if (testNoteEl) {
+            testNoteEl.textContent = `测试记录：${savedTodos[todoIndex].testNote}`;
+          } else {
+            const newNoteEl = document.createElement('div');
+            newNoteEl.className = 'test-note';
+            newNoteEl.textContent = `测试记录：${savedTodos[todoIndex].testNote}`;
+            item.appendChild(newNoteEl);
+          }
+        } else if (testNoteEl) {
+          testNoteEl.remove();
+        }
+        
+        // 保存数据
+        localStorage.setItem('xiaociTodos', JSON.stringify(savedTodos));
+      }
+    }
+
+    // 更新标签筛选栏
+    function updateTagFilter() {
+      const filterDiv = document.getElementById('tagFilter');
+      const savedTodos = JSON.parse(localStorage.getItem('xiaociTodos') || '[]');
+      
+      // 收集所有标签并去重
+      const allTags = [...new Set(savedTodos.flatMap(todo => todo.tags))];
+      
+      // 清空现有标签按钮（保留“全部”）
+      filterDiv.innerHTML = '<button class="tag-btn active" onclick="filterByTag(\'all\')">全部</button>';
+      
+      // 添加新标签按钮
+      allTags.forEach(tag => {
+        const btn = document.createElement('button');
+        btn.className = 'tag-btn';
+        btn.textContent = tag;
+        btn.onclick = () => filterByTag(tag);
+        filterDiv.appendChild(btn);
+      });
+    }
+
+    // 标签筛选功能
+    function filterByTag(targetTag) {
+      const allItems = document.querySelectorAll('.todo-item');
+      const allTagBtns = document.querySelectorAll('.tag-btn');
+      
+      // 切换按钮激活状态
+      allTagBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === targetTag || (targetTag === 'all' && btn.textContent === '全部'));
+      });
+      
+      // 筛选显示测试项
+      allItems.forEach(item => {
+        const itemTags = Array.from(item.querySelectorAll('.tag-bubble')).map(bubble => bubble.textContent);
+        const shouldShow = targetTag === 'all' || itemTags.includes(targetTag);
+        item.style.display = shouldShow ? 'flex' : 'none';
+      });
+    }
+
+    // 导出CSV功能
+    function exportToCSV() {
+      const savedTodos = JSON.parse(localStorage.getItem('xiaociTodos') || '[]');
+      
+      if (savedTodos.length === 0) {
+        alert('没有可导出的测试记录哦～');
+        return;
+      }
+
+      // 构造CSV内容
+      const headers = ['测试项', '标签', '状态', '测试记录'];
+      const rows = savedTodos.map(todo => [
+        `"${todo.text}"`, // 转义双引号
+        `"${todo.tags.join('; ')}"`,
+        todo.done ? '已完成' : '未完成',
+        `"${todo.testNote}"`
+      ]);
+
+      // 拼接CSV字符串
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+
+      // 创建下载链接
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      
+      // 设置文件名（带日期）
+      const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `小辞测试记录_${dateStr}.csv`);
+      link.style.visibility = 'hidden';
+      
+      // 触发下载
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // 显示打气弹窗
+    function showCheer() {
+      const randomText = CONFIG.cheerTexts[Math.floor(Math.random() * CONFIG.cheerTexts.length)];
+      alert(randomText);
+    }
+
+    // 每日自动打气
+    function autoCheer() {
+      const today = new Date().toDateString();
+      if (!localStorage.getItem('cheered_' + today)) {
+        setTimeout(() => {
+          showCheer();
+          localStorage.setItem('cheered_' + today, 'true');
+        }, 1000);
+      }
+    }
+  </script>
+</body>
+</html>
